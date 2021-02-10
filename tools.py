@@ -274,7 +274,7 @@ class LogFileData:
 
 	# Get waypoints from the log and save the data in 
 	# a mission file.
-	def get_waypoints(self, fname = ''):
+	def save_waypoints(self, fname = ''):
 		if not fname :
 			print('No file name specified')
 			return
@@ -333,7 +333,7 @@ class LogFileData:
 
 	# Plot the magnitude of an error in the 3D graph
 	def plot_error_in_3d(self, log_field = '', var_calc = '', var_real = '', 
-						label = '', folder_name=''):
+						label = '', folder_name = ''):
 
 		# If there's no sub field it returns None value and does
 		# not execute the remaining lines.
@@ -393,8 +393,59 @@ class LogFileData:
 		plot_3d_points(variables, description, names)
 
 
+	def plot_waypoints(self, log_num = '', lines = False, folder_name = '', 
+						real_gps = False):
+
+		# If log_num emty, fuction return a None value
+		if not log_num: return
+
+		# Read Waypoints of interest
+		ctot = self.data['CMD']['CTot'][0]
+		cid = np.array(self.data['CMD']['CId'])[0:ctot]
+		idx = np.where((cid == 16) | (cid == 21) | (cid == 31) )
+		alt_h = self.data['CMD']['Alt'][0]
+
+		# Ignore starting point
+		lat = np.array(self.data['CMD']['Lat'])[idx][1:]
+		lng = np.array(self.data['CMD']['Lng'])[idx][1:]
+		alt = np.array(self.data['CMD']['Alt'])[idx][1:] + alt_h
+
+		# Create figure to plot data
+		fig = plt.figure()
+		ax = plt.axes(projection='3d')
+		ax.xaxis.pane.fill = False
+		ax.xaxis.pane.set_edgecolor('white')
+		ax.yaxis.pane.fill = False
+		ax.yaxis.pane.set_edgecolor('white')
+		ax.zaxis.pane.fill = False
+		ax.zaxis.pane.set_edgecolor('white')
+		ax.grid(False)
+
+		cs = ax.scatter(lat, lng, alt, s = 30, c = 'red',
+						edgecolor = 'k')
+		ax.plot(lat, lng, alt, linewidth = 0.75)
+
+		# Get gps data and plot if real_gps = True
+		if real_gps:
+			lat, lng, alt = self.get_gps_data()
+			ax.plot(lat, lng, alt, marker='>', markevery=30)
+
+		ax.view_init(24, 15)
+		fig.suptitle('Waypoints: ' + log_num + '.log' , fontsize = 28)
+		file_name = 'waypoints_'+ log_num + '.png'
+		plt.get_current_fig_manager().window.showMaximized()
+		fig.subplots_adjust(top=0.925, bottom=0.140, left=0.085, right=0.98,)
+		plt.get_current_fig_manager().window.showMaximized()
+		plt.show()
+
+		# Save image if sub field and folder name were defined
+		if folder_name :
+			save_fig(folder_name, file_name, fig)
+
+
 
 def main():
+	pass
 
 if __name__ == '__main__':
 	main()
