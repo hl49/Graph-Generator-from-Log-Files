@@ -1,33 +1,49 @@
 import numpy as np
 import sys
 import os
-
+from tkinter import *
+from tkinter import filedialog
+from tkinter import messagebox
+# Path of the this file
 f_path = os.path.dirname(os.path.realpath(__file__))
+f_path = f_path[0:f_path.rfind('\\')] + '\\comparison\\' 
+
+# Directories to be used in order to read and save
+# modified missions
 wps_path = os.path.join(f_path, 'wps\\')
 sim_path = os.path.join(f_path, 'wps_simulations\\')
 
-def modify_waypoints(fname='default.txt'):
+def modify_waypoints():
+	global window
+	path_file = filedialog.askopenfilename(filetypes = [("txt", ".txt")])
+	file_name = path_file.split('/')[-1]
+
 	try:
-		fh = open(wps_path+fname)
+		fh = open(path_file)
 	except:
 		print('Error, file cannot be opened')
-		quit()
+
+	# Read each way point from the mission file
 	wps = []
 	for line in fh:
 		wps.append(line.split('\t'))
 	lat = np.array([float(wps[i][8]) for i in range(1,len(wps))])
 	lng = np.array([float(wps[i][9]) for i in range(1,len(wps))])
-	lat_o, lng_o = -0.1098542, -78.3551329
+	
+	# New latitude and longitude for simulation
+	lat_o, lng_o = -0.1058602, -78.3551253
+
+	# Move mission to simulation position
 	lat_d = lat_o - lat[0]
 	lng_d = lng_o - lng[0]
 	for i in range(lat.shape[0]):
 		if lat[i] == 0.0: continue
 		lat[i] = lat[i] + lat_d
-	
 	for i in range(lng.shape[0]):
 		if lng[i] == 0.0: continue
 		lng[i] = lng[i] + lng_d
-	fh = open(sim_path+fname, 'w')
+
+	fh = open(sim_path + file_name, 'w')
 	fh.write(str(wps[0][0]))
 	for i in range(1, len(wps)):
 		[fh.write(j + '\t') for j in wps[i][:8]]
@@ -36,11 +52,16 @@ def modify_waypoints(fname='default.txt'):
 		fh.write(str(wps[i][-2])+'\t')
 		fh.write(str(wps[i][-1]))
 	fh.close()
+	messagebox.showinfo("Conversion", "Done!")
+
 
 def main():
-	for entry in os.listdir(wps_path): 
-		if os.path.isfile(os.path.join(wps_path, entry)):
-			modify_waypoints(entry) 
+	global window
+	window = Tk()
+	window.title('Select File')
+	btn = Button(window, text = 'Open Mission', width = 25, command = modify_waypoints)
+	btn.grid(column = 0, row = 0, padx = 0, pady = 5)
+	window.mainloop()
 
 if __name__ == '__main__':
 	main()

@@ -21,8 +21,9 @@ def process_log():
 	log_num = path_file.split('/')[-1].split('.')[0]
 	data_log = LogFileData(path_file)
 	window.withdraw()
-	data_log.plot_waypoints(log_num = log_num, folder_name = log_num)
-	# plot_pids_in_3d()
+	# data_log.plot_power_in_3d(log_num = log_num, folder_name = log_num)
+	# data_log.plot_waypoints(log_num = log_num, folder_name = log_num)
+	plot_pids_in_3d()
 	# plot_3d_errors()
 	# plot_errors()
 	# plot_subfields()

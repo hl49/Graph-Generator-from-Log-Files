@@ -26,7 +26,7 @@ def save_fig(folder_name, file_name, fig):
 	f_path = os.path.join(f_path, folder_name)
 	fig.savefig(os.path.join(f_path, file_name), dpi=300)	
 
-
+# Plot data acording to GPS position
 def plot_3d_points(variables, description, names):
 
 	gps, var = variables
@@ -45,9 +45,18 @@ def plot_3d_points(variables, description, names):
 	ax.zaxis.pane.set_edgecolor('white')
 	ax.grid(False)
 
+	# Configure viewing angle in the plot
+	ax.view_init(36, 30)
+	# ax.view_init(24, 15)
+
 	# Plot GPS points and assign a color depending 
 	# on the value of the error
-	cs = ax.scatter(lat, lng, alt , s = 10, c = var, cmap = 'jet')
+	size = 10
+	if np.amax(var) > 0:
+		size = 100 * var / np.amax(var) + 1
+
+	cs = ax.scatter(lat, lng, alt , s = size, c = var, cmap = 'jet')
+	# cs = ax.scatter(lat, lng, alt , s = 10, c = var, cmap = 'jet')
 	cbar = plt.colorbar(cs)
 	fig.suptitle(title, fontsize = 28)
 	if label: cbar.ax.set_title(label, fontsize = 18)
@@ -392,9 +401,48 @@ class LogFileData:
 		names = (folder_name, file_name)
 		plot_3d_points(variables, description, names)
 
+	def plot_power_in_3d(self, log_num = '', folder_name = '', view = ''):
+		
+		# If log_num empty, fuction return None Value
+		if not log_num: return
 
-	def plot_waypoints(self, log_num = '', lines = False, folder_name = '', 
-						real_gps = False):
+		# Get gps data from function
+		gps = self.get_gps_data()
+
+		# Determine range on time within the UAV executes 
+		# auto mode
+		t = np.array(self.data['BAT']['TimeUS'])
+		idx_i, idx_f = self.select_auto_data(t)
+
+		# Get voltage and current data
+		volt = np.array(self.data['BAT']['Volt'])[idx_i:idx_f]
+		curr = np.array(self.data['BAT']['Curr'])[idx_i:idx_f]
+
+		# Calculate power
+		power = volt * curr
+
+		# Resize error to match the length of the GPS position data
+		length = len(gps[0])
+		resized_var = np.resize(power, (length, round(power.shape[0]/length)))
+		resized_var = np.mean(resized_var, axis=1)
+		resized_var = np.abs(resized_var)
+
+		# Generate title, label and file name
+		title = 'Power: ' + log_num + '.log'
+		label = 'POWER (W)'
+		file_name = 'power_'+ log_num + '.png'
+
+
+		# Pack all variables to call plot_3d_points fuction in order to 
+		# plot with this data
+		variables = (gps, resized_var)
+		description = (title, label)
+		names = (folder_name, file_name)
+		plot_3d_points(variables, description, names)
+
+
+
+	def plot_waypoints(self, log_num = '', folder_name = '', real_gps = False):
 
 		# If log_num emty, fuction return a None value
 		if not log_num: return
@@ -426,6 +474,7 @@ class LogFileData:
 		ax.plot(lat, lng, alt, linewidth = 0.75)
 
 		# Get gps data and plot if real_gps = True
+		# This will plot the real trajectory described by the uav
 		if real_gps:
 			lat, lng, alt = self.get_gps_data()
 			ax.plot(lat, lng, alt, marker='>', markevery=30)
