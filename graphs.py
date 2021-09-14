@@ -22,8 +22,8 @@ def process_log():
 	data_log = LogFileData(path_file)
 	window.withdraw()
 	# data_log.plot_power_in_3d(log_num = log_num, folder_name = log_num)
-	# data_log.plot_waypoints(log_num = log_num, folder_name = log_num)
-	plot_pids_in_3d()
+	data_log.plot_waypoints(log_num = log_num, folder_name = log_num)
+	# plot_pids_in_3d()
 	# plot_3d_errors()
 	# plot_errors()
 	# plot_subfields()
@@ -111,8 +111,9 @@ def main():
 	global window
 	window = Tk()
 	window.title('Select File')
+	window.resizable(0, 0)
 	# window.geometry('350x200')
-	btn = Button(window, text = 'Open Log', width = 25, command = process_log)
+	btn = Button(window, text = 'Read Log', width = 25, command = process_log)
 	btn.grid(column = 0, row = 0, padx = 0, pady = 5)
 	window.mainloop()
 

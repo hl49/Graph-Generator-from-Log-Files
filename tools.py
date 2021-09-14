@@ -187,7 +187,7 @@ class LogFileData:
 		plt.grid()
 		plt.get_current_fig_manager().window.showMaximized()
 		fig.subplots_adjust(top=0.925, bottom=0.150, left=0.085, right=0.98,)
-		plt.show()	
+		plt.show()
 
 		# Save image if sub field and folder name were defined
 		if folder_name :
